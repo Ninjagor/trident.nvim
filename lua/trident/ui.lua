@@ -75,6 +75,9 @@ function M.open_picker()
 
 	pcall(vim.api.nvim_buf_set_name, buf, "[♆ TRIDENT ♆]")
 
+	vim.keymap.set("n", "j", "<Down>", { buffer = buf, nowait = true, silent = true })
+	vim.keymap.set("n", "k", "<Up>", { buffer = buf, nowait = true, silent = true })
+
 	vim.bo[buf].buftype = "nofile"
 
 	-- vim.bo[buf].buftype = ""
