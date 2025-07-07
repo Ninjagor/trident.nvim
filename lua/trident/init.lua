@@ -2,10 +2,25 @@ local manager = require("trident.manager")
 
 local M = {
 	_opts = {
-		cycle = false, -- default: no cycling
+		cycle = false,
 		height = 0.4,
 		shorten_paths = false,
 		silent = false,
+		win = {
+			-- buf or float
+			win_type = "buf",
+
+			-- for the buf wintype
+			buf_split = "belowright",
+
+			float = {
+				width = 0.6,
+				height = 0.4,
+				border = "single",
+				title = "[♆ TRIDENT ♆]",
+				transparent = false,
+			},
+		},
 	},
 }
 

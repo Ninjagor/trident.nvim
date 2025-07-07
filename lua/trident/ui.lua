@@ -1,7 +1,6 @@
 local manager = require("trident.manager")
 local M = {}
 
--- Shared state inside UI session
 local state = {
 	buf = nil,
 	win = nil,
@@ -21,7 +20,6 @@ vim.keymap.set("n", "T", function()
 	local trident = require("trident")
 	trident._opts.shorten_paths = not trident._opts.shorten_paths
 
-	-- rebuild lines with new setting
 	local opts = trident._opts
 	local lines = {}
 	for _, path in ipairs(state.marks) do
@@ -40,8 +38,6 @@ end, { buffer = state.buf, nowait = true, silent = true })
 
 local function refresh_buffer()
 	vim.bo[state.buf].modifiable = true
-
-	-- vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, state.marks)
 
 	local opts = require("trident")._opts
 	local lines = {}
@@ -67,11 +63,49 @@ function M.open_picker()
 	local opts = require("trident")._opts
 	local total_lines = vim.o.lines
 	local height = math.floor(total_lines * (opts.height or 0.4))
-	vim.cmd("belowright " .. height .. "split")
+	local buf_split = opts.win.buf_split or "belowright"
+
+	-- buf or float
+	local win_type = opts.win.win_type or "buf"
+
+	-- vim.cmd(buf_split .. " " .. height .. "split")
+	--
+	-- local buf = vim.api.nvim_create_buf(false, true)
+	-- local win = vim.api.nvim_get_current_win()
+	-- vim.api.nvim_win_set_buf(win, buf)
 
 	local buf = vim.api.nvim_create_buf(false, true)
-	local win = vim.api.nvim_get_current_win()
-	vim.api.nvim_win_set_buf(win, buf)
+	local win
+
+	if win_type == "float" then
+		local float_opts = opts.win.float or {}
+
+		local width = math.floor((float_opts.width or 0.6) * vim.o.columns)
+		local height_px = math.floor((float_opts.height or 0.4) * vim.o.lines)
+		local row = math.floor((vim.o.lines - height_px) / 2)
+		local col = math.floor((vim.o.columns - width) / 2)
+
+		win = vim.api.nvim_open_win(buf, true, {
+			relative = "editor",
+			row = row,
+			col = col,
+			width = width,
+			height = height_px,
+			style = "minimal",
+			border = float_opts.border or "rounded",
+			title = float_opts.title or "[♆ TRIDENT ♆]",
+			title_pos = "center",
+			noautocmd = true,
+		})
+
+		if float_opts.transparent then
+			vim.wo[win].winhl = "Normal:NormalFloat"
+		end
+	else
+		vim.cmd(buf_split .. " " .. height .. "split")
+		win = vim.api.nvim_get_current_win()
+		vim.api.nvim_win_set_buf(win, buf)
+	end
 
 	pcall(vim.api.nvim_buf_set_name, buf, "[♆ TRIDENT ♆]")
 
@@ -96,26 +130,23 @@ function M.open_picker()
 		return vim.api.nvim_win_get_cursor(0)[1]
 	end
 
-	-- Open file
 	vim.keymap.set("n", "<CR>", function()
 		local idx = get_cursor_idx()
 		local file = state.marks[idx]
 		if file and vim.fn.filereadable(file) == 1 then
-			vim.cmd("bd!") -- close picker buffer
+			vim.cmd("bd!")
 			vim.cmd("edit " .. vim.fn.fnameescape(file))
 		else
 			require("trident").notify("Invalid file", vim.log.levels.ERROR)
 		end
 	end, { buffer = buf })
 
-	-- Delete mark
 	vim.keymap.set("n", "D", function()
 		local idx = get_cursor_idx()
 		table.remove(state.marks, idx)
 		refresh_buffer()
 	end, { buffer = buf })
 
-	-- Move down
 	vim.keymap.set("n", "J", function()
 		local idx = get_cursor_idx()
 		if idx < #state.marks then
@@ -125,7 +156,6 @@ function M.open_picker()
 		end
 	end, { buffer = buf })
 
-	-- Move up
 	vim.keymap.set("n", "K", function()
 		local idx = get_cursor_idx()
 		if idx > 1 then
