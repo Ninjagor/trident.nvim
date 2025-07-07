@@ -69,22 +69,11 @@ function M.open_picker()
 	local height = math.floor(total_lines * (opts.height or 0.4))
 	vim.cmd("belowright " .. height .. "split")
 
-	-- local buf = vim.api.nvim_create_buf(false, true)
-	-- local win = vim.api.nvim_get_current_win()
-	-- vim.api.nvim_win_set_buf(win, buf)
-	--
-	-- vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
-
-	local existing = vim.fn.bufnr("[♆ TRIDENT ♆]")
-	if existing ~= -1 then
-		vim.cmd("bwipeout " .. existing)
-	end
-
 	local buf = vim.api.nvim_create_buf(false, true)
-	vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
-
 	local win = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(win, buf)
+
+	pcall(vim.api.nvim_buf_set_name, buf, "[♆ TRIDENT ♆]")
 
 	vim.bo[buf].buftype = "nofile"
 
