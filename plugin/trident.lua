@@ -63,7 +63,12 @@ vim.api.nvim_create_user_command("PikeList", function()
 	end
 end, {})
 
-vim.fn.sign_define("TridentPikeSign", { text = "♆", texthl = "WarningMsg", numhl = "" })
+-- vim.fn.sign_define("TridentPikeSign", { text = "♆", texthl = "WarningMsg", numhl = "" })
+
+for c = string.byte("a"), string.byte("z") do
+	local letter = string.char(c)
+	vim.fn.sign_define("TridentPikeSign" .. letter, { text = letter, texthl = "WarningMsg" })
+end
 
 vim.api.nvim_create_user_command("PikeJump", function(opts)
 	local letter = opts.args
@@ -74,12 +79,20 @@ vim.api.nvim_create_user_command("PikeJump", function(opts)
 	require("trident").jump_to_pike(letter)
 end, { nargs = 1 })
 
-vim.api.nvim_create_user_command("PikeNext", function()
+vim.api.nvim_create_user_command("PikeNextGlobal", function()
 	require("trident").next_pike()
 end, {})
 
-vim.api.nvim_create_user_command("PikePrev", function()
+vim.api.nvim_create_user_command("PikePrevGlobal", function()
 	require("trident").prev_pike()
+end, {})
+
+vim.api.nvim_create_user_command("PikeNext", function()
+	require("trident").next_pike_local()
+end, {})
+
+vim.api.nvim_create_user_command("PikePrev", function()
+	require("trident").prev_pike_local()
 end, {})
 
 vim.api.nvim_create_user_command("PikeSetType", function(opts)
@@ -116,3 +129,107 @@ vim.cmd("doautocmd ColorScheme")
 vim.api.nvim_create_user_command("PikeList", function()
 	require("trident").list_pikes()
 end, {})
+
+local function is_valid_letter(c)
+	return c:match("^[a-z]$") ~= nil
+end
+
+require("trident").generate_keybinds({
+	create_label_prefix = "tm",
+	delete_label_prefix = "td",
+	jump_label_prefix = ";",
+	create_typed_prefix = "tt",
+	clear_type_key = "tr",
+})
+
+-- local type_map = {
+-- 	t = "todo",
+-- 	e = "error",
+-- 	w = "warn",
+-- 	n = "note",
+-- 	f = "fix",
+-- 	d = "debug",
+-- 	b = "bookmark",
+-- 	p = "perf",
+-- 	h = "hack",
+-- }
+--
+-- for c = string.byte("a"), string.byte("z") do
+-- 	local trident = require("trident")
+-- 	local letter = string.char(c)
+-- 	local keybinds = trident._opts.pikes_keybinds
+-- 	-- print(keybinds)
+--
+-- 	vim.api.nvim_set_keymap(
+-- 		"n",
+-- 		((keybinds.create_prefix or "tm") .. letter),
+-- 		(
+-- 			string.format(
+-- 				"<cmd>lua require('trident').add_pike({ line = vim.api.nvim_win_get_cursor(0)[1], letter = '%s' })<CR>",
+-- 				letter
+-- 			)
+-- 		),
+-- 		{ noremap = true, silent = true }
+-- 	)
+--
+-- 	vim.api.nvim_set_keymap(
+-- 		"n",
+-- 		((keybinds.delete_prefix or "td") .. letter),
+-- 		(string.format("<cmd>lua require('trident').remove_pike({ letter = '%s' })<CR>", letter)),
+-- 		{ noremap = true, silent = true }
+-- 	)
+--
+-- 	vim.api.nvim_set_keymap(
+-- 		"n",
+-- 		((keybinds.jump_prefix or ";") .. letter),
+-- 		(string.format("<cmd>lua require('trident').jump_to_pike('%s')<CR>", letter)),
+-- 		{ noremap = true, silent = true }
+-- 	)
+-- end
+--
+-- vim.api.nvim_set_keymap("n", "tt", "", {
+-- 	noremap = true,
+-- 	silent = true,
+-- 	callback = function()
+-- 		vim.notify("Use tt<letter><type_letter> keybinds, e.g. ttct for pike c with todo", vim.log.levels.INFO)
+-- 	end,
+-- })
+--
+-- for c = string.byte("a"), string.byte("z") do
+-- 	for tchar, tname in pairs(type_map) do
+-- 		local letter = string.char(c)
+-- 		local key = "tt" .. letter .. tchar
+-- 		vim.api.nvim_set_keymap(
+-- 			"n",
+-- 			key,
+-- 			string.format(
+-- 				"<cmd>lua require('trident').add_pike({ line = vim.api.nvim_win_get_cursor(0)[1], letter = '%s', type = '%s' })<CR>",
+-- 				letter,
+-- 				tname
+-- 			),
+-- 			{ noremap = true, silent = true }
+-- 		)
+-- 	end
+-- end
+--
+-- vim.api.nvim_set_keymap("n", "tr", "", {
+-- 	noremap = true,
+-- 	silent = true,
+-- 	callback = function()
+-- 		local line = vim.api.nvim_win_get_cursor(0)[1]
+-- 		local filepath = vim.api.nvim_buf_get_name(0)
+-- 		local pikes = require("trident.pike_manager").get_pikes_for_file(filepath)
+--
+-- 		for _, pike in ipairs(pikes) do
+-- 			if pike.line == line then
+-- 				pike.type = nil
+-- 				require("trident.pike_manager").set_pikes(pikes)
+-- 				require("trident.pike_ui").place_pike_signs(vim.api.nvim_get_current_buf())
+-- 				require("trident").notify("Cleared type of pike '" .. pike.letter .. "' at line " .. line)
+-- 				return
+-- 			end
+-- 		end
+--
+-- 		require("trident").notify("No pike found at current line", vim.log.levels.WARN)
+-- 	end,
+-- })

@@ -8,6 +8,15 @@ local M = {
 		height = 0.4,
 		shorten_paths = false,
 		silent = false,
+
+		pikes_keybinds = {
+			create_prefix = "tm",
+			delete_prefix = "td",
+			jump_prefix = ";",
+			-- list = "tp",
+			-- toggle_view = "tM",
+		},
+
 		win = {
 			-- buf or float
 			win_type = "buf",
@@ -232,8 +241,149 @@ function M.update_pike_type(letter, new_type)
 	end
 end
 
+function M.next_pike_local()
+	local curr_buf = vim.api.nvim_get_current_buf()
+	local curr_file = vim.api.nvim_buf_get_name(curr_buf)
+	local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+
+	local pikes = pikes_manager.get_pikes_for_file(curr_file)
+	if #pikes == 0 then
+		vim.notify("No pikes in current buffer", vim.log.levels.INFO)
+		return
+	end
+
+	table.sort(pikes, function(a, b)
+		return a.line < b.line
+	end)
+
+	for _, pike in ipairs(pikes) do
+		if pike.line > curr_line then
+			vim.api.nvim_win_set_cursor(0, { pike.line, 0 })
+			return
+		end
+	end
+
+	local first = pikes[1]
+	vim.api.nvim_win_set_cursor(0, { first.line, 0 })
+end
+
+function M.prev_pike_local()
+	local curr_buf = vim.api.nvim_get_current_buf()
+	local curr_file = vim.api.nvim_buf_get_name(curr_buf)
+	local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+
+	local pikes = pikes_manager.get_pikes_for_file(curr_file)
+	if #pikes == 0 then
+		vim.notify("No pikes in current buffer", vim.log.levels.INFO)
+		return
+	end
+
+	table.sort(pikes, function(a, b)
+		return a.line < b.line
+	end)
+
+	for i = #pikes, 1, -1 do
+		local pike = pikes[i]
+		if pike.line < curr_line then
+			vim.api.nvim_win_set_cursor(0, { pike.line, 0 })
+			return
+		end
+	end
+
+	local last = pikes[#pikes]
+	vim.api.nvim_win_set_cursor(0, { last.line, 0 })
+end
+
 M.list_pikes = function()
 	pikes_ui.open_picker()
+end
+
+function M.add_pike_key(letter)
+	local line = vim.api.nvim_win_get_cursor(0)[1]
+	M.add_pike({ line = line, letter = letter })
+end
+
+function M.remove_pike_key(letter)
+	M.remove_pike({ letter = letter })
+end
+
+function M.jump_to_pike_key(letter)
+	M.jump_to_pike(letter)
+end
+
+function M.add_pike_with_type_key(letter, type_name)
+	local line = vim.api.nvim_win_get_cursor(0)[1]
+	M.add_pike({ line = line, letter = letter, type = type_name })
+end
+
+function M.clear_pike_type_at_cursor()
+	local line = vim.api.nvim_win_get_cursor(0)[1]
+	local filepath = vim.api.nvim_buf_get_name(0)
+	local pikes = require("trident.pike_manager").get_pikes_for_file(filepath)
+
+	for _, pike in ipairs(pikes) do
+		if pike.line == line then
+			pike.type = nil
+			require("trident.pike_manager").set_pikes(pikes)
+			require("trident.pike_ui").place_pike_signs(vim.api.nvim_get_current_buf())
+			M.notify("Cleared type of pike '" .. pike.letter .. "' at line " .. line)
+			return
+		end
+	end
+
+	M.notify("No pike found at current line", vim.log.levels.WARN)
+end
+
+function M.generate_keybinds(opts)
+	opts = opts or {}
+
+	local create_label_prefix = opts.create_label_prefix or "tm"
+	local delete_label_prefix = opts.delete_label_prefix or "td"
+	local jump_label_prefix = opts.jump_label_prefix or ";"
+	local create_typed_prefix = opts.create_typed_prefix or "tt"
+	local clear_type_key = opts.clear_type_key or "tr"
+
+	local type_map = {
+		t = "todo",
+		e = "error",
+		w = "warn",
+		n = "note",
+		f = "fix",
+		d = "debug",
+		b = "bookmark",
+		p = "perf",
+		h = "hack",
+	}
+
+	for c = string.byte("a"), string.byte("z") do
+		local letter = string.char(c)
+
+		vim.keymap.set("n", create_label_prefix .. letter, function()
+			M.add_pike_key(letter)
+		end, { noremap = true, silent = true })
+
+		vim.keymap.set("n", delete_label_prefix .. letter, function()
+			M.remove_pike_key(letter)
+		end, { noremap = true, silent = true })
+
+		vim.keymap.set("n", jump_label_prefix .. letter, function()
+			M.jump_to_pike_key(letter)
+		end, { noremap = true, silent = true })
+
+		for tchar, tname in pairs(type_map) do
+			vim.keymap.set("n", create_typed_prefix .. letter .. tchar, function()
+				M.add_pike_with_type_key(letter, tname)
+			end, { noremap = true, silent = true })
+		end
+	end
+
+	vim.keymap.set("n", create_typed_prefix, function()
+		vim.notify("Use " .. create_typed_prefix .. "<letter><type_letter>, e.g. ttct", vim.log.levels.INFO)
+	end, { noremap = true, silent = true })
+
+	vim.keymap.set("n", clear_type_key, function()
+		M.clear_pike_type_at_cursor()
+	end, { noremap = true, silent = true })
 end
 
 return M

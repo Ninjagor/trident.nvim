@@ -13,7 +13,14 @@ function M.place_pike_signs(bufnr)
 	vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
 	for i, pike in ipairs(pikes) do
-		vim.fn.sign_place(i, "trident_pikes", "TridentPikeSign", bufnr, { lnum = pike.line, priority = 10 })
+		vim.fn.sign_place(
+			i,
+			"trident_pikes",
+			"TridentPikeSign" .. pike.letter,
+			bufnr,
+			{ lnum = pike.line, priority = 10 }
+		)
+		-- vim.fn.sign_place(i, "trident_pikes", "TridentPikeSign", bufnr, { lnum = pike.line, priority = 10 })
 
 		if
 			pike.type == "todo"
@@ -28,7 +35,7 @@ function M.place_pike_signs(bufnr)
 		then
 			local pike_type_caps = string.upper(pike.type)
 			vim.api.nvim_buf_set_extmark(bufnr, ns, pike.line - 1, 0, {
-				virt_text = { { " ** " .. pike_type_caps .. " ** ", "TridentPikeVirtualText" } },
+				virt_text = { { " ♆ " .. pike_type_caps .. " ♆ ", "TridentPikeVirtualText" } },
 				virt_text_pos = "eol",
 				hl_mode = "combine",
 			})
