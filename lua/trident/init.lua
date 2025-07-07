@@ -232,4 +232,8 @@ function M.update_pike_type(letter, new_type)
 	end
 end
 
+M.list_pikes = function()
+	pikes_ui.open_picker()
+end
+
 return M

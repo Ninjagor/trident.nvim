@@ -48,7 +48,8 @@ local function get_next_letter()
 	return nil
 end
 
-function M.add_pike(pike)
+function M.add_pike(pike, opts)
+	opts = opts or {}
 	pike.filepath = normalize_path(pike.filepath)
 	if not uv.fs_stat(pike.filepath) then
 		require("trident").notify("File does not exist: " .. pike.filepath, vim.log.levels.ERROR)
@@ -82,7 +83,9 @@ function M.add_pike(pike)
 	end
 
 	table.insert(pikes, pike)
-	storage.save(pikes)
+	if opts.shouldSave ~= false then
+		storage.save(pikes)
+	end
 	require("trident").notify(
 		"Added pike " .. pike.letter .. ": " .. (pike.name or "") .. " at " .. pike.filepath .. ":" .. pike.line
 	)
@@ -96,7 +99,9 @@ function M.remove_pike(opts)
 	for i, pike in ipairs(pikes) do
 		if pike.letter == opts.letter then
 			table.remove(pikes, i)
-			storage.save(pikes)
+			if opts.shouldSave ~= false then
+				storage.save(pikes)
+			end
 			require("trident").notify("Removed pike " .. opts.letter)
 			return
 		end
@@ -138,6 +143,11 @@ function M.update_type(letter, new_type)
 		end
 	end
 	return false
+end
+
+function M.set_pikes(new_pikes)
+	pikes = new_pikes
+	storage.save(pikes)
 end
 
 return M

@@ -112,3 +112,7 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 })
 
 vim.cmd("doautocmd ColorScheme")
+
+vim.api.nvim_create_user_command("PikeList", function()
+	require("trident").list_pikes()
+end, {})
