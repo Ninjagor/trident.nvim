@@ -4,6 +4,7 @@ local M = {
 	_opts = {
 		cycle = false, -- default: no cycling
 		height = 0.4,
+		shorten_paths = false,
 	},
 }
 

@@ -8,9 +8,52 @@ local state = {
 	marks = {},
 }
 
+local function shorten_path(path)
+	local cwd = vim.fn.getcwd()
+	if vim.startswith(path, cwd) then
+		local shortened = path:sub(#cwd + 2)
+		return shortened
+	end
+	return path
+end
+
+vim.keymap.set("n", "T", function()
+	local trident = require("trident")
+	trident._opts.shorten_paths = not trident._opts.shorten_paths
+
+	-- rebuild lines with new setting
+	local opts = trident._opts
+	local lines = {}
+	for _, path in ipairs(state.marks) do
+		if opts.shorten_paths then
+			table.insert(lines, shorten_path(path))
+		else
+			table.insert(lines, path)
+		end
+	end
+	vim.bo[state.buf].modifiable = true
+	vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
+	vim.bo[state.buf].modifiable = false
+
+	vim.notify("Shorten paths " .. (opts.shorten_paths and "enabled" or "disabled"))
+end, { buffer = state.buf, nowait = true, silent = true })
+
 local function refresh_buffer()
 	vim.bo[state.buf].modifiable = true
-	vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, state.marks)
+
+	-- vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, state.marks)
+
+	local opts = require("trident")._opts
+	local lines = {}
+	for _, path in ipairs(state.marks) do
+		if opts.shorten_paths then
+			table.insert(lines, shorten_path(path))
+		else
+			table.insert(lines, path)
+		end
+	end
+	vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
+
 	vim.bo[state.buf].modifiable = false
 end
 
@@ -28,6 +71,8 @@ function M.open_picker()
 	local buf = vim.api.nvim_create_buf(false, true)
 	local win = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(win, buf)
+
+	vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
 
 	vim.bo[buf].buftype = "nofile"
 
