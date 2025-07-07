@@ -35,7 +35,7 @@ vim.keymap.set("n", "T", function()
 	vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
 	vim.bo[state.buf].modifiable = false
 
-	require('trident').notify("Shorten paths " .. (opts.shorten_paths and "enabled" or "disabled"))
+	require("trident").notify("Shorten paths " .. (opts.shorten_paths and "enabled" or "disabled"))
 end, { buffer = state.buf, nowait = true, silent = true })
 
 local function refresh_buffer()
@@ -60,7 +60,7 @@ end
 function M.open_picker()
 	local marks = manager.get_marks()
 	if #marks == 0 then
-		require('trident').notify("No files in Trident list", vim.log.levels.INFO)
+		require("trident").notify("No files in Trident list", vim.log.levels.INFO)
 		return
 	end
 
@@ -68,11 +68,23 @@ function M.open_picker()
 	local total_lines = vim.o.lines
 	local height = math.floor(total_lines * (opts.height or 0.4))
 	vim.cmd("belowright " .. height .. "split")
+
+	-- local buf = vim.api.nvim_create_buf(false, true)
+	-- local win = vim.api.nvim_get_current_win()
+	-- vim.api.nvim_win_set_buf(win, buf)
+	--
+	-- vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
+
+	local existing = vim.fn.bufnr("[♆ TRIDENT ♆]")
+	if existing ~= -1 then
+		vim.cmd("bwipeout " .. existing)
+	end
+
 	local buf = vim.api.nvim_create_buf(false, true)
+	vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
+
 	local win = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(win, buf)
-
-	vim.api.nvim_buf_set_name(buf, "[♆ TRIDENT ♆]")
 
 	vim.bo[buf].buftype = "nofile"
 
@@ -100,7 +112,7 @@ function M.open_picker()
 			vim.cmd("bd!") -- close picker buffer
 			vim.cmd("edit " .. vim.fn.fnameescape(file))
 		else
-			require('trident').notify("Invalid file", vim.log.levels.ERROR)
+			require("trident").notify("Invalid file", vim.log.levels.ERROR)
 		end
 	end, { buffer = buf })
 
@@ -133,13 +145,13 @@ function M.open_picker()
 
 	vim.keymap.set("n", "W", function()
 		manager.set_marks(state.marks)
-		require('trident').notify("Trident list saved.")
+		require("trident").notify("Trident list saved.")
 		vim.cmd("bd!")
 	end, { buffer = buf, nowait = true, silent = true })
 
 	vim.keymap.set("n", "Q", function()
 		vim.cmd("bd!")
-		require('trident').notify("Trident list closed without saving.")
+		require("trident").notify("Trident list closed without saving.")
 	end, { buffer = buf, nowait = true, silent = true })
 end
 
