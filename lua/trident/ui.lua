@@ -35,7 +35,7 @@ vim.keymap.set("n", "T", function()
 	vim.api.nvim_buf_set_lines(state.buf, 0, -1, false, lines)
 	vim.bo[state.buf].modifiable = false
 
-	vim.notify("Shorten paths " .. (opts.shorten_paths and "enabled" or "disabled"))
+	require('trident').notify("Shorten paths " .. (opts.shorten_paths and "enabled" or "disabled"))
 end, { buffer = state.buf, nowait = true, silent = true })
 
 local function refresh_buffer()
@@ -60,7 +60,7 @@ end
 function M.open_picker()
 	local marks = manager.get_marks()
 	if #marks == 0 then
-		vim.notify("No files in Trident list", vim.log.levels.INFO)
+		require('trident').notify("No files in Trident list", vim.log.levels.INFO)
 		return
 	end
 
@@ -100,7 +100,7 @@ function M.open_picker()
 			vim.cmd("bd!") -- close picker buffer
 			vim.cmd("edit " .. vim.fn.fnameescape(file))
 		else
-			vim.notify("Invalid file", vim.log.levels.ERROR)
+			require('trident').notify("Invalid file", vim.log.levels.ERROR)
 		end
 	end, { buffer = buf })
 
@@ -133,13 +133,13 @@ function M.open_picker()
 
 	vim.keymap.set("n", "W", function()
 		manager.set_marks(state.marks)
-		vim.notify("Trident list saved.")
+		require('trident').notify("Trident list saved.")
 		vim.cmd("bd!")
 	end, { buffer = buf, nowait = true, silent = true })
 
 	vim.keymap.set("n", "Q", function()
 		vim.cmd("bd!")
-		vim.notify("Trident list closed without saving.")
+		require('trident').notify("Trident list closed without saving.")
 	end, { buffer = buf, nowait = true, silent = true })
 end
 

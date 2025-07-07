@@ -34,41 +34,41 @@ function M.add_file(filepath)
 	filepath = normalize_path(filepath)
 	local stat = uv.fs_stat(filepath)
 	if not stat or stat.type ~= "file" then
-		vim.notify("Not a valid file: " .. filepath, vim.log.levels.ERROR)
+		require('trident').notify("Not a valid file: " .. filepath, vim.log.levels.ERROR)
 		return
 	end
 
 	if exists(filepath) then
-		vim.notify("File already in trident: " .. filepath, vim.log.levels.INFO)
+		require('trident').notify("File already in trident: " .. filepath, vim.log.levels.INFO)
 		return
 	end
 
 	table.insert(marks, filepath)
 	storage.save(marks)
-	vim.notify("Added: " .. filepath)
+	require('trident').notify("Added: " .. filepath)
 end
 
 function M.remove_file(filepath)
 	filepath = normalize_path(filepath)
 	local idx = index_of(filepath)
 	if not idx then
-		vim.notify("File not in trident: " .. filepath, vim.log.levels.WARN)
+		require('trident').notify("File not in trident: " .. filepath, vim.log.levels.WARN)
 		return
 	end
 	table.remove(marks, idx)
 	storage.save(marks)
-	vim.notify("Removed: " .. filepath)
+	require('trident').notify("Removed: " .. filepath)
 end
 
 function M.move(from_idx, to_idx)
 	if from_idx < 1 or from_idx > #marks or to_idx < 1 or to_idx > #marks then
-		vim.notify("Invalid indices for reorder", vim.log.levels.ERROR)
+		require('trident').notify("Invalid indices for reorder", vim.log.levels.ERROR)
 		return
 	end
 	local item = table.remove(marks, from_idx)
 	table.insert(marks, to_idx, item)
 	storage.save(marks)
-	vim.notify("Moved mark to position " .. to_idx)
+	require('trident').notify("Moved mark to position " .. to_idx)
 end
 
 function M.purge_project()

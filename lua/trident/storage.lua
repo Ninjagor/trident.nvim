@@ -36,7 +36,7 @@ function M.save(marks)
 	local content = vim.fn.json_encode(marks)
 	local f = io.open(path, "w")
 	if not f then
-		vim.notify("Failed to write trident project file", vim.log.levels.ERROR)
+		require('trident').notify("Failed to write trident project file", vim.log.levels.ERROR)
 		return
 	end
 	f:write(content)
@@ -47,9 +47,9 @@ function M.purge()
 	local path = get_project_file()
 	local ok, err = os.remove(path)
 	if ok then
-		vim.notify("Trident project storage cleared", vim.log.levels.INFO)
+		require('trident').notify("Trident project storage cleared", vim.log.levels.INFO)
 	else
-		vim.notify("Failed to purge project storage: " .. (err or ""), vim.log.levels.ERROR)
+		require('trident').notify("Failed to purge project storage: " .. (err or ""), vim.log.levels.ERROR)
 	end
 end
 

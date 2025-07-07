@@ -5,8 +5,16 @@ local M = {
 		cycle = false, -- default: no cycling
 		height = 0.4,
 		shorten_paths = false,
+		silent = false,
 	},
 }
+
+local notify = vim.notify
+function M.notify(msg, level)
+	if not M._opts.silent then
+		notify(msg, level)
+	end
+end
 
 function M.setup(opts)
 	M._opts = vim.tbl_extend("force", M._opts, opts or {})
@@ -69,7 +77,7 @@ function M.next()
 		if M._opts.cycle then
 			next_idx = 1
 		else
-			vim.notify("No next file", vim.log.levels.INFO)
+			require("trident").notify("No next file", vim.log.levels.INFO)
 			return
 		end
 	end
@@ -102,7 +110,7 @@ function M.prev()
 		if M._opts.cycle then
 			prev_idx = #marks
 		else
-			vim.notify("No previous file", vim.log.levels.INFO)
+			require("trident").notify("No previous file", vim.log.levels.INFO)
 			return
 		end
 	end
