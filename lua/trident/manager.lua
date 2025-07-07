@@ -76,4 +76,9 @@ function M.purge_project()
 	storage.purge()
 end
 
+function M.set_marks(new_list)
+	marks = new_list
+	storage.save(marks)
+end
+
 return M
