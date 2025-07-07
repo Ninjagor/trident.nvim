@@ -28,4 +28,10 @@ M.move = function(from, to)
 	require("trident.manager").move(from, to)
 end
 
+M.ui = require("trident.ui")
+
+M.list = function()
+	M.ui.open_picker()
+end
+
 return M
