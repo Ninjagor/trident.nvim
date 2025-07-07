@@ -222,4 +222,14 @@ function M.prev_pike()
 	vim.api.nvim_win_set_cursor(0, { last.line, 0 })
 end
 
+function M.update_pike_type(letter, new_type)
+	local ok = pikes_manager.update_type(letter, new_type)
+	if ok then
+		require("trident").notify("Updated pike " .. letter .. " to type: " .. new_type)
+		require("trident.pike_ui").place_pike_signs()
+	else
+		require("trident").notify("No pike found with letter " .. letter, vim.log.levels.WARN)
+	end
+end
+
 return M

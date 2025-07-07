@@ -81,3 +81,34 @@ end, {})
 vim.api.nvim_create_user_command("PikePrev", function()
 	require("trident").prev_pike()
 end, {})
+
+vim.api.nvim_create_user_command("PikeSetType", function(opts)
+	local letter = opts.fargs[1]
+	local pike_type = opts.fargs[2]
+	if not letter or not letter:match("^[a-z]$") or not pike_type then
+		vim.notify("Usage: :PikeSetType <letter> <type>", vim.log.levels.ERROR)
+		return
+	end
+	require("trident").update_pike_type(letter, pike_type)
+end, { nargs = "+" })
+
+vim.api.nvim_create_augroup("TridentHighlight", { clear = true })
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+	group = "TridentHighlight",
+	callback = function()
+		local normal_hl = vim.api.nvim_get_hl(0, { name = "Normal" })
+		local error_hl = vim.api.nvim_get_hl(0, { name = "Error" })
+
+		local bg = normal_hl.fg or 0x282828
+		local fg = error_hl.bg or 0xff0000
+
+		local function to_hex(c)
+			return string.format("#%06x", c)
+		end
+
+		vim.cmd(string.format("highlight TridentPikeVirtualText guifg=%s guibg=%s gui=bold", to_hex(fg), to_hex(bg)))
+	end,
+})
+
+vim.cmd("doautocmd ColorScheme")

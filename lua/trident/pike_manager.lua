@@ -129,4 +129,15 @@ function M.get_all_sorted()
 	return pikes
 end
 
+function M.update_type(letter, new_type)
+	for _, pike in ipairs(pikes) do
+		if pike.letter == letter then
+			pike.type = new_type
+			storage.save(pikes)
+			return true
+		end
+	end
+	return false
+end
+
 return M
