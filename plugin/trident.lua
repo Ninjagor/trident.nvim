@@ -24,3 +24,11 @@ vim.api.nvim_create_user_command("TridentMove", function(opts)
 	local to = tonumber(opts.fargs[2])
 	require("trident").move(from, to)
 end, { nargs = "+" })
+
+vim.api.nvim_create_user_command("TridentNext", function()
+	require("trident").next()
+end, {})
+
+vim.api.nvim_create_user_command("TridentPrev", function()
+	require("trident").prev()
+end, {})
