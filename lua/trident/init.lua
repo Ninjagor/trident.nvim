@@ -101,7 +101,6 @@ function M.next()
 	vim.cmd("edit " .. vim.fn.fnameescape(marks[next_idx]))
 end
 
--- Go to previous marked file
 function M.prev()
 	local marks = manager.get_marks()
 	if #marks == 0 then
@@ -142,10 +141,8 @@ function M.add_pike(opts)
 end
 
 function M.remove_pike(opts)
-	-- opts: { filepath, line }
-	opts.filepath = opts.filepath or vim.api.nvim_buf_get_name(0)
 	pikes_manager.remove_pike(opts)
-	pikes_ui.place_pike_signs()
+	require("trident.pike_ui").place_pike_signs()
 end
 
 function M.get_all_pikes()
@@ -167,5 +164,62 @@ vim.api.nvim_create_autocmd("BufEnter", {
 		pikes_ui.place_pike_signs()
 	end,
 })
+
+function M.jump_to_pike(letter)
+	local pike = pikes_manager.find_by_letter(letter)
+	if not pike then
+		vim.notify("No pike with letter: " .. letter, vim.log.levels.WARN)
+		return
+	end
+	vim.cmd("edit " .. vim.fn.fnameescape(pike.filepath))
+	vim.api.nvim_win_set_cursor(0, { pike.line, 0 })
+end
+
+function M.next_pike()
+	local pikes = pikes_manager.get_all_sorted()
+	if #pikes == 0 then
+		vim.notify("No pikes to jump to", vim.log.levels.INFO)
+		return
+	end
+
+	local curr_file = vim.api.nvim_buf_get_name(0)
+	local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+
+	for _, pike in ipairs(pikes) do
+		if pike.filepath > curr_file or (pike.filepath == curr_file and pike.line > curr_line) then
+			vim.cmd("edit " .. vim.fn.fnameescape(pike.filepath))
+			vim.api.nvim_win_set_cursor(0, { pike.line, 0 })
+			return
+		end
+	end
+
+	local first = pikes[1]
+	vim.cmd("edit " .. vim.fn.fnameescape(first.filepath))
+	vim.api.nvim_win_set_cursor(0, { first.line, 0 })
+end
+
+function M.prev_pike()
+	local pikes = pikes_manager.get_all_sorted()
+	if #pikes == 0 then
+		vim.notify("No pikes to jump to", vim.log.levels.INFO)
+		return
+	end
+
+	local curr_file = vim.api.nvim_buf_get_name(0)
+	local curr_line = vim.api.nvim_win_get_cursor(0)[1]
+
+	for i = #pikes, 1, -1 do
+		local pike = pikes[i]
+		if pike.filepath < curr_file or (pike.filepath == curr_file and pike.line < curr_line) then
+			vim.cmd("edit " .. vim.fn.fnameescape(pike.filepath))
+			vim.api.nvim_win_set_cursor(0, { pike.line, 0 })
+			return
+		end
+	end
+
+	local last = pikes[#pikes]
+	vim.cmd("edit " .. vim.fn.fnameescape(last.filepath))
+	vim.api.nvim_win_set_cursor(0, { last.line, 0 })
+end
 
 return M

@@ -32,6 +32,22 @@ function M.get_pikes_for_file(filepath)
 	return filtered
 end
 
+local function get_next_letter()
+	local used = {}
+	for _, p in ipairs(pikes) do
+		if p.letter then
+			used[p.letter] = true
+		end
+	end
+	for c = 97, 122 do
+		local ch = string.char(c)
+		if not used[ch] then
+			return ch
+		end
+	end
+	return nil
+end
+
 function M.add_pike(pike)
 	pike.filepath = normalize_path(pike.filepath)
 	if not uv.fs_stat(pike.filepath) then
@@ -42,30 +58,75 @@ function M.add_pike(pike)
 		require("trident").notify("Invalid line number", vim.log.levels.ERROR)
 		return
 	end
-	if exists(pike) then
-		require("trident").notify("Pike already exists at this location", vim.log.levels.INFO)
-		return
-	end
-	table.insert(pikes, pike)
-	storage.save(pikes)
-	require("trident").notify("Added pike: " .. (pike.name or "") .. " at " .. pike.filepath .. ":" .. pike.line)
-end
 
-function M.remove_pike(pike)
-	for i, item in ipairs(pikes) do
-		if item.filepath == pike.filepath and item.line == pike.line then
-			table.remove(pikes, i)
-			storage.save(pikes)
-			require("trident").notify("Removed pike at " .. pike.filepath .. ":" .. pike.line)
+	if pike.letter then
+		for i, existing in ipairs(pikes) do
+			if existing.letter == pike.letter then
+				table.remove(pikes, i)
+				break
+			end
+		end
+	else
+		pike.letter = get_next_letter()
+		if not pike.letter then
+			require("trident").notify("No free letters for pike", vim.log.levels.ERROR)
 			return
 		end
 	end
-	require("trident").notify("Pike not found", vim.log.levels.WARN)
+
+	for _, existing in ipairs(pikes) do
+		if existing.filepath == pike.filepath and existing.line == pike.line then
+			require("trident").notify("Pike already exists at this location", vim.log.levels.INFO)
+			return
+		end
+	end
+
+	table.insert(pikes, pike)
+	storage.save(pikes)
+	require("trident").notify(
+		"Added pike " .. pike.letter .. ": " .. (pike.name or "") .. " at " .. pike.filepath .. ":" .. pike.line
+	)
+end
+
+function M.remove_pike(opts)
+	if not opts.letter then
+		require("trident").notify("Letter required to remove pike", vim.log.levels.ERROR)
+		return
+	end
+	for i, pike in ipairs(pikes) do
+		if pike.letter == opts.letter then
+			table.remove(pikes, i)
+			storage.save(pikes)
+			require("trident").notify("Removed pike " .. opts.letter)
+			return
+		end
+	end
+	require("trident").notify("No pike with letter " .. opts.letter, vim.log.levels.WARN)
 end
 
 function M.purge()
 	pikes = {}
 	storage.purge()
+end
+
+function M.find_by_letter(letter)
+	for _, pike in ipairs(pikes) do
+		if pike.letter == letter then
+			return pike
+		end
+	end
+	return nil
+end
+
+function M.get_all_sorted()
+	table.sort(pikes, function(a, b)
+		if a.filepath == b.filepath then
+			return a.line < b.line
+		else
+			return a.filepath < b.filepath
+		end
+	end)
+	return pikes
 end
 
 return M

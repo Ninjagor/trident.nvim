@@ -29,21 +29,27 @@ vim.api.nvim_create_user_command("TridentPrev", function()
 end, {})
 
 vim.api.nvim_create_user_command("PikeAdd", function(opts)
-	local line = tonumber(opts.args)
+	local args = vim.split(opts.args, " ")
+	local line = tonumber(args[1])
+	local letter = args[2]
 	if not line or line < 1 then
 		vim.notify("Invalid line number", vim.log.levels.ERROR)
 		return
 	end
-	require("trident").add_pike({ line = line })
-end, { nargs = 1 })
+	if letter and not letter:match("^[a-z]$") then
+		vim.notify("Letter must be a-z", vim.log.levels.ERROR)
+		return
+	end
+	require("trident").add_pike({ line = line, letter = letter })
+end, { nargs = "+" })
 
 vim.api.nvim_create_user_command("PikeRemove", function(opts)
-	local line = tonumber(opts.args)
-	if not line or line < 1 then
-		vim.notify("Invalid line number", vim.log.levels.ERROR)
+	local letter = opts.args
+	if not letter or not letter:match("^[a-z]$") then
+		vim.notify("Invalid letter (a-z)", vim.log.levels.ERROR)
 		return
 	end
-	require("trident").remove_pike({ line = line })
+	require("trident").remove_pike({ letter = letter })
 end, { nargs = 1 })
 
 vim.api.nvim_create_user_command("PikeList", function()
@@ -58,3 +64,20 @@ vim.api.nvim_create_user_command("PikeList", function()
 end, {})
 
 vim.fn.sign_define("TridentPikeSign", { text = "♆", texthl = "WarningMsg", numhl = "" })
+
+vim.api.nvim_create_user_command("PikeJump", function(opts)
+	local letter = opts.args
+	if not letter or not letter:match("^[a-z]$") then
+		vim.notify("Invalid letter (a-z)", vim.log.levels.ERROR)
+		return
+	end
+	require("trident").jump_to_pike(letter)
+end, { nargs = 1 })
+
+vim.api.nvim_create_user_command("PikeNext", function()
+	require("trident").next_pike()
+end, {})
+
+vim.api.nvim_create_user_command("PikePrev", function()
+	require("trident").prev_pike()
+end, {})

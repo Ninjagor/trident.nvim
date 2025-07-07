@@ -57,8 +57,8 @@ function M.open_picker()
 	local marks = manager.get_marks()
 	-- if #marks == 0 then
 	-- 	require("trident").notify("No files in Trident list", vim.log.levels.INFO)
-	-- 	return
 	-- end
+	-- 	return
 
 	local opts = require("trident")._opts
 	local total_lines = vim.o.lines
