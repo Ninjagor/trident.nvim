@@ -1,4 +1,5 @@
 local manager = require("trident.manager")
+local pikes_manager = require("trident.pike_manager")
 
 local M = {
 	_opts = {
@@ -130,6 +131,31 @@ function M.prev()
 		end
 	end
 	vim.cmd("edit " .. vim.fn.fnameescape(marks[prev_idx]))
+end
+
+function M.add_pike(opts)
+	-- opts: { filepath, line, name?, type? }
+	opts.filepath = opts.filepath or vim.api.nvim_buf_get_name(0)
+	pikes_manager.add_pike(opts)
+end
+
+function M.remove_pike(opts)
+	-- opts: { filepath, line }
+	opts.filepath = opts.filepath or vim.api.nvim_buf_get_name(0)
+	pikes_manager.remove_pike(opts)
+end
+
+function M.get_all_pikes()
+	return pikes_manager.get_pikes()
+end
+
+function M.get_pikes_for_file(filepath)
+	filepath = filepath or vim.api.nvim_buf_get_name(0)
+	return pikes_manager.get_pikes_for_file(filepath)
+end
+
+function M.purge_pikes()
+	pikes_manager.purge()
 end
 
 return M
