@@ -24,4 +24,8 @@ M.purge = function()
 	manager.purge_project()
 end
 
+M.move = function(from, to)
+	require("trident.manager").move(from, to)
+end
+
 return M

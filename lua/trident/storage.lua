@@ -25,10 +25,10 @@ function M.load()
 	local content = f:read("*a")
 	f:close()
 	local ok, data = pcall(vim.fn.json_decode, content)
-	if not ok then
+	if not ok or type(data) ~= "table" then
 		return {}
 	end
-	return data or {}
+	return data
 end
 
 function M.save(marks)
