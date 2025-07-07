@@ -21,7 +21,10 @@ function M.open_picker()
 		return
 	end
 
-	vim.cmd("belowright 10split")
+	local opts = require("trident")._opts
+	local total_lines = vim.o.lines
+	local height = math.floor(total_lines * (opts.height or 0.4))
+	vim.cmd("belowright " .. height .. "split")
 	local buf = vim.api.nvim_create_buf(false, true)
 	local win = vim.api.nvim_get_current_win()
 	vim.api.nvim_win_set_buf(win, buf)
