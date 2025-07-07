@@ -1,5 +1,6 @@
 local manager = require("trident.manager")
 local pikes_manager = require("trident.pike_manager")
+local pikes_ui = require("trident.pike_ui")
 
 local M = {
 	_opts = {
@@ -137,12 +138,14 @@ function M.add_pike(opts)
 	-- opts: { filepath, line, name?, type? }
 	opts.filepath = opts.filepath or vim.api.nvim_buf_get_name(0)
 	pikes_manager.add_pike(opts)
+	pikes_ui.place_pike_signs()
 end
 
 function M.remove_pike(opts)
 	-- opts: { filepath, line }
 	opts.filepath = opts.filepath or vim.api.nvim_buf_get_name(0)
 	pikes_manager.remove_pike(opts)
+	pikes_ui.place_pike_signs()
 end
 
 function M.get_all_pikes()
@@ -157,5 +160,12 @@ end
 function M.purge_pikes()
 	pikes_manager.purge()
 end
+
+vim.api.nvim_create_autocmd("BufEnter", {
+	callback = function()
+		local pikes_ui = require("trident.pike_ui")
+		pikes_ui.place_pike_signs()
+	end,
+})
 
 return M

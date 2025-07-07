@@ -56,3 +56,5 @@ vim.api.nvim_create_user_command("PikeList", function()
 		print(string.format("%d: %s", p.line, p.name or ""))
 	end
 end, {})
+
+vim.fn.sign_define("TridentPikeSign", { text = "♆", texthl = "WarningMsg", numhl = "" })
