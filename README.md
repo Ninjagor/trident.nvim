@@ -10,6 +10,7 @@
 
 ## 📚 Table of Contents
 
+- [💻 Preview] (#-preview)
 - [❓ Problem](#-problem)
 - [✅ Solution](#-solution)
 - [⚙️ Installation](#️-installation)
@@ -22,6 +23,14 @@
     - [ 𓐬 Pikes](#𓐬-pikes)
     - [🗂️ Persistence](#️-persistence)
 - [🤝 Contributing](#-contributing)
+
+---
+
+## 💻 Preview
+
+
+https://github.com/user-attachments/assets/92f97f6c-9d13-494b-93dc-c91f000b9809
+
 
 ---
 
